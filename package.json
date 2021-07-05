@@ -1,0 +1,21 @@
+{
+  "name": "action-compose",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --build",
+    "test": "yarn jest"
+  },
+  "dependencies": {
+    "compose-function": "^3.0.3",
+    "isasync": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/compose-function": "^0.0.30",
+    "@types/jest": "^26.0.23",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.3",
+    "typescript": "^4.3.5"
+  }
+}
