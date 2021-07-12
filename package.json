@@ -1,7 +1,7 @@
 {
   "name": "action-compose",
-  "version": "0.0.1",
-  "main": "index.js",
+  "version": "0.0.9",
+  "main": "dist/index.js",
   "license": "MIT",
   "scripts": {
     "build": "tsc --build",

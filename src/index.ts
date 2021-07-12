@@ -1,6 +1,7 @@
 import compose from 'compose-function';
 
-const isAsync = (func: Function) => func.constructor.name === 'AsyncFunction';
+const isAsyncAction = (action: RootAction | NonRootAction) =>
+	action.executor.constructor.name === 'AsyncFunction' || action.isAsync;
 
 type Action = RootAction | NonRootAction;
 
@@ -14,6 +15,8 @@ interface RootAction {
 	executor: Function;
 	next: NonRootAction[];
 	isRoot: true;
+	isAsync?: boolean;
+	returnValueKey?: string
 }
 
 interface NonRootAction {
@@ -22,32 +25,45 @@ interface NonRootAction {
 	inject?: InjectArgsType;
 	when?: (...args: any[]) => boolean;
 	injectWhen?: InjectArgsType;
+	isAsync?: boolean;
+	returnValueKey?: string;
 }
 
 function actionCompose(rootAction: Omit<RootAction, 'isRoot'>) {
-	return (...initialValue: any[]) => {
+	return (initialValue?: { [index: string]: any }) => {
 		let returnValue: any;
 		let promiseState: 'resolve' | 'reject';
+		let returnValueKey: string | undefined;
 		let finish = false;
 
 		const assignReturnValue = (val: any) => (returnValue = val);
+		const assignReturnValueKey = (key: string | undefined) => (returnValueKey = key);
 		const assignPromiseState = (state: 'resolve' | 'reject') => (promiseState = state);
 
 		const createInjectArgs = (action: Action, type: 'inject' | 'injectWhen') => {
 			if ('isRoot' in action)
 				return {
-					initialValue,
+					...initialValue,
 				};
 
-			const injectArgs: { [k in keyof InjectArgsType]: any } = {};
+			let injectArgs: { [k in keyof InjectArgsType]: any } = {};
 			if (action[type]?.initialValue) {
-				injectArgs.initialValue = initialValue;
+				injectArgs = {
+					...injectArgs,
+					...initialValue,
+				};
 			}
 			if (action[type]?.returnValue) {
-				injectArgs.returnValue = returnValue;
+				injectArgs = {
+					...injectArgs,
+					[returnValueKey || 'returnValue']: returnValue,
+				};
 			}
 			if (action[type]?.promiseState) {
-				injectArgs.promiseState = promiseState;
+				injectArgs = {
+					...injectArgs,
+					promiseState,
+				};
 			}
 			return injectArgs;
 		};
@@ -70,6 +86,9 @@ function actionCompose(rootAction: Omit<RootAction, 'isRoot'>) {
 				finish = true;
 				return action.executor(createInjectArgs(action, 'inject'));
 			}
+
+			if (action.returnValueKey) assignReturnValueKey(action.returnValueKey);
+			else assignReturnValueKey(undefined)
 
 			const executorP = action.executor(createInjectArgs(action, 'inject'));
 
@@ -99,6 +118,9 @@ function actionCompose(rootAction: Omit<RootAction, 'isRoot'>) {
 				return action.executor(createInjectArgs(action, 'inject'));
 			}
 
+			if (action.returnValueKey) assignReturnValueKey(action.returnValueKey);
+			else assignReturnValueKey(undefined)
+
 			const tmp = assignReturnValue(action.executor(createInjectArgs(action, 'inject')));
 
 			let ret;
@@ -115,7 +137,7 @@ function actionCompose(rootAction: Omit<RootAction, 'isRoot'>) {
 		}
 
 		function dispatch(action: Action): any {
-			if (isAsync(action.executor)) {
+			if (isAsyncAction(action)) {
 				return executeAsync(action);
 			} else {
 				return excuteSync(action);
