@@ -4,13 +4,6 @@ const isAsyncAction = (action: RootAction | NonRootAction) =>
 	action.executor.constructor.name === 'AsyncFunction' || action.isAsync;
 
 type Action = RootAction | NonRootAction;
-
-type InjectArgsType = {
-	initialValue?: boolean;
-	returnValue?: boolean;
-	promiseState?: boolean;
-};
-
 interface RootAction {
 	executor: Function;
 	next: NonRootAction[];
@@ -22,9 +15,7 @@ interface RootAction {
 interface NonRootAction {
 	executor: Function;
 	next?: NonRootAction[];
-	inject?: InjectArgsType;
 	when?: (...args: any[]) => boolean;
-	injectWhen?: InjectArgsType;
 	isAsync?: boolean;
 	returnValueKey?: string;
 }
