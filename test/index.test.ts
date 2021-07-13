@@ -47,7 +47,7 @@ describe('sync', () => {
 
 		actionCompose({
 			executor: fn1,
-            returnValueKey: "someReturnValue",
+			returnValueKey: 'someReturnValue',
 			next: [
 				{
 					executor: fn3,
@@ -55,45 +55,37 @@ describe('sync', () => {
 				},
 				{
 					executor: fn2,
-					inject: {
-						initialValue: true,
-						returnValue: true,
-					},
 				},
 			],
 		})({
-            foo: 123,
-            bar: 456
-        });
+			foo: 123,
+			bar: 456,
+		});
 
 		expect(fn2.mock.calls[0][0]).toEqual({
-            foo: 123,
-            bar: 456,
+			foo: 123,
+			bar: 456,
 			someReturnValue: 123456,
 		});
 
 		actionCompose({
 			executor: fn1,
-			returnValueKey: "otherReturnValue", 
+			returnValueKey: 'otherReturnValue',
 			next: [
 				{
 					executor: fn2,
 					next: [
 						{
 							executor: fn3,
-							inject: {
-								returnValue: true
-							}
-						}
-					]
-				}
-			]	
-		})()
+						},
+					],
+				},
+			],
+		})();
 
 		expect(fn3.mock.calls[0][0]).toEqual({
-			returnValue: 789
-		})
-
+			returnValue: 789,
+		});
 	});
 
 	test('return value', () => {
@@ -110,10 +102,6 @@ describe('sync', () => {
 				next: [
 					{
 						executor: fn2,
-						inject: {
-							initialValue: true,
-							returnValue: true,
-						},
 					},
 					{
 						executor: fn3,
@@ -121,8 +109,8 @@ describe('sync', () => {
 					},
 				],
 			})({
-                foo: 123
-            })
+				foo: 123,
+			})
 		).toBe(123456);
 	});
 
@@ -220,45 +208,39 @@ describe('async', () => {
 	test('inject args', () => {
 		const p1 = actionCompose({
 			executor: resolvedAsyncFn1,
-            returnValueKey: "someReturnValue",
+			returnValueKey: 'someReturnValue',
 			next: [
 				{
 					executor: syncFn1,
-					inject: {
-						initialValue: true,
-						returnValue: true,
-					},
 				},
 			],
 		})({
-            foo: 777,
-            bar: 888
-        });
+			foo: 777,
+			bar: 888,
+		});
 		const p2 = actionCompose({
 			executor: rejectAsyncFn1,
 			next: [
 				{
 					executor: syncFn1,
-					inject: {
-						initialValue: true,
-						returnValue: true,
-					},
 				},
 			],
 		})({
-            foo: 777,
-            bar: 888
-        });
+			foo: 777,
+			bar: 888,
+		});
 
 		return Promise.all([p1, p2]).then(() => {
 			expect(syncFn1.mock.calls[0][0]).toEqual({
 				foo: 777,
-                bar: 888,
+				bar: 888,
+				promiseState: "resolve",
 				someReturnValue: 111,
 			});
 			expect(syncFn1.mock.calls[1][0]).toEqual({
-                foo: 777,
-                bar: 888,
+				foo: 777,
+				bar: 888,
+				promiseState: "reject",
 				returnValue: 333,
 			});
 		});

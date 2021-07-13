@@ -16,7 +16,7 @@ interface RootAction {
 	next: NonRootAction[];
 	isRoot: true;
 	isAsync?: boolean;
-	returnValueKey?: string
+	returnValueKey?: string;
 }
 
 interface NonRootAction {
@@ -45,27 +45,11 @@ function actionCompose(rootAction: Omit<RootAction, 'isRoot'>) {
 				return {
 					...initialValue,
 				};
-
-			let injectArgs: { [k in keyof InjectArgsType]: any } = {};
-			if (action[type]?.initialValue) {
-				injectArgs = {
-					...injectArgs,
-					...initialValue,
-				};
-			}
-			if (action[type]?.returnValue) {
-				injectArgs = {
-					...injectArgs,
-					[returnValueKey || 'returnValue']: returnValue,
-				};
-			}
-			if (action[type]?.promiseState) {
-				injectArgs = {
-					...injectArgs,
-					promiseState,
-				};
-			}
-			return injectArgs;
+			return {
+				...initialValue,
+				[returnValueKey || 'returnValue']: returnValue,
+				promiseState,
+			};
 		};
 
 		const whenPass = (action: Action) => {
@@ -88,7 +72,7 @@ function actionCompose(rootAction: Omit<RootAction, 'isRoot'>) {
 			}
 
 			if (action.returnValueKey) assignReturnValueKey(action.returnValueKey);
-			else assignReturnValueKey(undefined)
+			else assignReturnValueKey(undefined);
 
 			const executorP = action.executor(createInjectArgs(action, 'inject'));
 
@@ -119,7 +103,7 @@ function actionCompose(rootAction: Omit<RootAction, 'isRoot'>) {
 			}
 
 			if (action.returnValueKey) assignReturnValueKey(action.returnValueKey);
-			else assignReturnValueKey(undefined)
+			else assignReturnValueKey(undefined);
 
 			const tmp = assignReturnValue(action.executor(createInjectArgs(action, 'inject')));
 
