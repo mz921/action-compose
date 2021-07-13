@@ -4,6 +4,13 @@ const isAsyncAction = (action: RootAction | NonRootAction) =>
 	action.executor.constructor.name === 'AsyncFunction' || action.isAsync;
 
 type Action = RootAction | NonRootAction;
+
+type InjectArgsType = {
+	initialValue?: boolean;
+	returnValue?: boolean;
+	promiseState?: boolean;
+};
+
 interface RootAction {
 	executor: Function;
 	next: NonRootAction[];
@@ -15,7 +22,9 @@ interface RootAction {
 interface NonRootAction {
 	executor: Function;
 	next?: NonRootAction[];
+	inject?: InjectArgsType;
 	when?: (...args: any[]) => boolean;
+	injectWhen?: InjectArgsType;
 	isAsync?: boolean;
 	returnValueKey?: string;
 }
@@ -36,11 +45,33 @@ function actionCompose(rootAction: Omit<RootAction, 'isRoot'>) {
 				return {
 					...initialValue,
 				};
-			return {
-				...initialValue,
-				[returnValueKey || 'returnValue']: returnValue,
-				promiseState,
-			};
+			if (action[type] === undefined)
+				return {
+					...initialValue,
+					[returnValueKey || 'returnValue']: returnValue,
+					promiseState,
+				};
+
+			let injectArgs: { [k in keyof InjectArgsType]: any } = {};
+			if (action[type]?.initialValue) {
+				injectArgs = {
+					...injectArgs,
+					...initialValue,
+				};
+			}
+			if (action[type]?.returnValue) {
+				injectArgs = {
+					...injectArgs,
+					[returnValueKey || 'returnValue']: returnValue,
+				};
+			}
+			if (action[type]?.promiseState) {
+				injectArgs = {
+					...injectArgs,
+					promiseState,
+				};
+			}
+			return injectArgs;
 		};
 
 		const whenPass = (action: Action) => {
