@@ -167,7 +167,8 @@ describe('async', () => {
 	test('basic calling chain', async () => {
 		return actionCompose({
 			executor: resolvedAsyncFn1,
-			next: [
+			get next() { 
+				return [
 				{
 					executor: resolvedAsyncFn2,
 					next: [
@@ -176,7 +177,7 @@ describe('async', () => {
 						},
 					],
 				},
-			],
+			]},
 		})().then(() => {
 			expect(resolvedAsyncFn1.mock.calls.length).toBe(1);
 			expect(resolvedAsyncFn2.mock.calls.length).toBe(1);

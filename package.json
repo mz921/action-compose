@@ -8,8 +8,7 @@
     "test": "yarn jest"
   },
   "dependencies": {
-    "compose-function": "^3.0.3",
-    "isasync": "^1.0.0"
+    "compose-function": "^3.0.3"
   },
   "devDependencies": {
     "@types/compose-function": "^0.0.30",
